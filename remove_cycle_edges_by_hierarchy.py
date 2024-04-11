@@ -7,6 +7,7 @@ from measures import F1
 from file_io import read_dict_from_file
 from file_io import write_dict_to_txt
 from file_io import write_pairs_to_file
+import tempfile
 	
 def get_edges_voting_scores(set_edges_list):
 	total_edges = set()
@@ -96,18 +97,19 @@ def breaking_cycles_by_hierarchy_performance(graph_file,gt_file,players_score_na
 	
 	from measures import report_performance
 	if players_score_name != "ensembling":
-		graph_file_name = str(graph_file).split("/")[-1]
-		output_location = "/tmp/cycle-breaking/" + graph_file_name + "/pr"
+		graph_file_name = os.path.basename(graph_file)
+		tmp_dir = tempfile.gettempdir()
+		output_location = os.path.join(tmp_dir, "cycle-breaking", graph_file_name, "pr")
 		os.makedirs(output_location)
-		players_score_dict  = computing_hierarchy(graph_file,players_score_name,nodetype = nodetype)
-		write_dict_to_txt(players_score_dict,output_location + "/scores")
-		e1,e2,e3,e4 = remove_cycle_edges_by_hierarchy(graph_file,players_score_dict,players_score_name,nodetype = nodetype)
-		
+		players_score_dict = computing_hierarchy(graph_file, players_score_name, nodetype=nodetype)
+		write_dict_to_txt(players_score_dict, output_location + "/scores")
+		e1, e2, e3, e4 = remove_cycle_edges_by_hierarchy(graph_file, players_score_dict, players_score_name, nodetype=nodetype)
+
 		if players_score_name == "pagerank":
-			write_pairs_to_file(e1,output_location + "/edges_to_remove1")
-			write_pairs_to_file(e2,output_location + "/edges_to_remove2")
-			write_pairs_to_file(e3,output_location + "/edges_to_remove3")
-			write_pairs_to_file(e4,output_location + "/edges_to_remove4")
+			write_pairs_to_file(e1, os.path.join(output_location, "edges_to_remove1"))
+			write_pairs_to_file(e2, os.path.join(output_location, "edges_to_remove2"))
+			write_pairs_to_file(e3, os.path.join(output_location, "edges_to_remove3"))
+			write_pairs_to_file(e4, os.path.join(output_location, "edges_to_remove4"))
 			report_performance(gt_file,e1,"PR")
 			return
 
